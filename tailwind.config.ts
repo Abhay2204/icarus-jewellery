@@ -25,7 +25,7 @@ const config: Config = {
           charcoal: "#2d2d2d",
           muted: "#666666",
           lightMuted: "#8e8e8e",
-          cream: "#f7f5f0",
+          cream: "#f5f4eb",
           warmStone: "#e5e1da",
           gold: "#c5a47e",
           goldLight: "#e2cfb4",

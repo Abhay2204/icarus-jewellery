@@ -16,8 +16,7 @@ import {
   X,
   Eye,
   Heart,
-  ShoppingBag,
-  Check,
+  MessageCircle,
   Gem,
   HandHeart,
   ShieldCheck,
@@ -67,7 +66,7 @@ const curatedCategories = [
 ];
 
 const journalArticles = [
-  { id: "art-1", tag: "DESIGN", title: "The Art Behind Every Icarus Piece", desc: "From the first sketch to the final polish—inside our design process.", image: "/assets/sig-azure-pendant.jpg" },
+  { id: "art-1", tag: "DESIGN", title: "The Art Behind Every Advika Piece", desc: "From the first sketch to the final polish—inside our design process.", image: "/assets/sig-azure-pendant.jpg" },
   { id: "art-2", tag: "JEWELLERY GUIDE", title: "How to Choose Jewellery That Lasts Forever", desc: "Expert tips on picking pieces you'll cherish for a lifetime.", image: "/assets/col-necklace.jpg" },
   { id: "art-3", tag: "TRENDS", title: "Timeless Trends We Love in 2025", desc: "Our edit of modern classics that never go out of style.", image: "/assets/promise-ring.jpg" },
   { id: "art-4", tag: "CRAFTSMANSHIP", title: "Crafted With Patience, Made to Be Treasured", desc: "Meet the hands and techniques behind our fine jewellery.", image: "/assets/pillar-craftsmanship.jpg" },
@@ -94,44 +93,97 @@ const productCatalog: Product[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 // GSAP useLayoutEffect hook (client-safe)
 // ─────────────────────────────────────────────────────────────────────────────
-function useGSAP(cb: () => (() => void) | void) {
+function useGSAP(cb: () => (() => void) | void, deps: any[] = []) {
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const cleanup = cb();
     return () => { if (cleanup) cleanup(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, deps);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCROLL REVEAL — simple fade-up
 // ─────────────────────────────────────────────────────────────────────────────
-function FadeUp({ children, className = "", delay = 0, as: Tag = "div", style }: {
-  children: React.ReactNode; className?: string; delay?: number; as?: keyof JSX.IntrinsicElements; style?: React.CSSProperties;
+function FadeUp({
+  children,
+  className = "",
+  delay = 0,
+  as: Tag = "div",
+  style,
+  start = "top 95%",
+  duration = 0.5,
+  y = 20,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  as?: keyof JSX.IntrinsicElements;
+  style?: React.CSSProperties;
+  start?: string;
+  duration?: number;
+  y?: number;
 }) {
   const ref = useRef<HTMLElement>(null);
   useGSAP(() => {
     if (!ref.current) return;
-    gsap.fromTo(ref.current, { opacity: 0, y: 55 }, {
-      opacity: 1, y: 0, duration: 1.1, delay,
-      ease: "power3.out",
-      scrollTrigger: { trigger: ref.current, start: "top 87%", toggleActions: "play none none none" },
-    });
+    gsap.fromTo(
+      ref.current,
+      { opacity: 0, y },
+      {
+        opacity: 1,
+        y: 0,
+        duration,
+        delay,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ref.current,
+          start,
+          toggleActions: "play none none none",
+        },
+      }
+    );
   });
   // @ts-ignore
   return <Tag ref={ref} className={className} style={{ opacity: 0, ...style }}>{children}</Tag>;
 }
 
 // Stagger children
-function StaggerUp({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function StaggerUp({
+  children,
+  className = "",
+  start = "top 96%",
+  stagger = 0.035,
+  duration = 0.4,
+  y = 15,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  start?: string;
+  stagger?: number;
+  duration?: number;
+  y?: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(() => {
     if (!ref.current) return;
-    gsap.fromTo(Array.from(ref.current.children), { opacity: 0, y: 45 }, {
-      opacity: 1, y: 0, duration: 0.85, stagger: 0.12, ease: "power3.out",
-      scrollTrigger: { trigger: ref.current, start: "top 84%", toggleActions: "play none none none" },
-    });
-  });
+    gsap.fromTo(
+      Array.from(ref.current.children),
+      { opacity: 0, y },
+      {
+        opacity: 1,
+        y: 0,
+        duration,
+        stagger,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ref.current,
+          start,
+          toggleActions: "play none none none",
+        },
+      }
+    );
+  }, [children]);
   return <div ref={ref} className={className}>{children}</div>;
 }
 
@@ -161,8 +213,8 @@ function CurtainImage({ src, alt, className = "", style }: { src: string; alt: s
       <div ref={imgRef} className="absolute inset-0">
         <Image src={src} alt={alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={95} className="object-cover object-center" />
       </div>
-      <div ref={leftRef} className="absolute inset-y-0 left-0 w-1/2 z-10 bg-[#ede8e3]" />
-      <div ref={rightRef} className="absolute inset-y-0 right-0 w-1/2 z-10 bg-[#ede8e3]" />
+      <div ref={leftRef} className="absolute inset-y-0 left-0 w-1/2 z-10 bg-[#f5f4eb]" />
+      <div ref={rightRef} className="absolute inset-y-0 right-0 w-1/2 z-10 bg-[#f5f4eb]" />
     </div>
   );
 }
@@ -175,7 +227,7 @@ function ShutterImage({ src, alt, className = "", darkBg = false, style }: { src
   const imgRef = useRef<HTMLDivElement>(null);
   const slatsRef = useRef<HTMLDivElement[]>([]);
   const SLATS = 7;
-  const bg = darkBg ? "#0d0d0d" : "#ede8e3";
+  const bg = darkBg ? "#0d0d0d" : "#f5f4eb";
 
   useGSAP(() => {
     if (!wrapRef.current) return;
@@ -243,7 +295,7 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const taglineRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
   const PANELS = 6;
-  const letters = ["I", "C", "A", "R", "U", "S"];
+  const letters = ["A", "D", "V", "I", "K", "A"];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -387,7 +439,7 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
               color: "#c5a47e",
             }}
           >
-            FINE JEWELLERY
+            IMITATION JEWELLERY
           </p>
         </div>
       </div>
@@ -399,12 +451,10 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
 // LIQUID GLASS STICKY NAV
 // ─────────────────────────────────────────────────────────────────────────────
 function GlassNav({
-  bagCount,
   currency,
   setCurrency,
   onCategoryClick,
 }: {
-  bagCount: number;
   currency: "INR" | "USD";
   setCurrency: (c: "INR" | "USD") => void;
   onCategoryClick: (cat: string) => void;
@@ -447,10 +497,16 @@ function GlassNav({
           {/* Logo */}
           <a
             href="#"
-            className="font-cinzel text-[22px] sm:text-[24px] tracking-[0.14em] text-white hover:text-[#c5a47e] transition-colors duration-300"
-            style={{ fontFamily: "var(--font-cinzel), serif" }}
+            className="relative block w-[155px] sm:w-[190px] h-8 sm:h-10 transition-transform duration-300 hover:scale-[1.03]"
           >
-            ICARUS
+            <Image
+              src="/assets/advika-logo-white.png"
+              alt="Advika Imitation Jewellery"
+              fill
+              priority
+              quality={100}
+              className="object-contain object-left"
+            />
           </a>
 
           {/* Desktop Nav */}
@@ -469,7 +525,7 @@ function GlassNav({
           </nav>
 
           {/* Right Actions */}
-          <div className="hidden md:flex items-center space-x-5">
+          <div className="hidden md:flex items-center space-x-4">
             {/* Currency */}
             <div className="flex items-center space-x-0.5 text-[10px] font-sans bg-white/8 rounded-full border border-white/10 overflow-hidden">
               {(["INR", "USD"] as const).map((c) => (
@@ -483,13 +539,17 @@ function GlassNav({
               ))}
             </div>
 
-            {/* Bag */}
-            {bagCount > 0 && (
-              <div className="flex items-center space-x-1.5 text-xs text-[#c5a47e]">
-                <ShoppingBag size={14} strokeWidth={1.5} />
-                <span>({bagCount})</span>
-              </div>
-            )}
+            {/* WhatsApp Contact */}
+            <a
+              href="https://wa.me/?text=Hello%20Advika%20Imitation%20Jewellery,%20I%20would%20like%20to%20inquire%20about%20your%20jewellery%20collection."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1.5 text-[10.5px] font-sans text-white hover:text-white bg-[#25D366]/25 hover:bg-[#25D366] border border-[#25D366]/50 hover:border-[#25D366] px-3.5 py-1.5 rounded-full transition-all duration-300 group"
+              style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+            >
+              <MessageCircle size={13} className="text-[#25D366] group-hover:text-white transition-colors" />
+              <span className="tracking-[0.14em] font-semibold text-[10px] uppercase">WhatsApp</span>
+            </a>
           </div>
 
           {/* Mobile Toggle */}
@@ -510,7 +570,15 @@ function GlassNav({
             style={{ backdropFilter: "blur(30px)", backgroundColor: "rgba(13,13,13,0.92)" }}
           >
             <button onClick={() => setMobileOpen(false)} className="absolute top-6 right-6 text-white/80"><X size={24} strokeWidth={1.5} /></button>
-            <span className="font-cinzel text-3xl tracking-[0.18em] text-white mb-10" style={{ fontFamily: "var(--font-cinzel), serif" }}>ICARUS</span>
+            <div className="relative w-[220px] h-[65px] mb-10">
+              <Image
+                src="/assets/advika-logo-white.png"
+                alt="Advika Imitation Jewellery"
+                fill
+                quality={100}
+                className="object-contain"
+              />
+            </div>
             <nav className="flex flex-col space-y-6 items-center">
               {navLinks.map((item) => (
                 <a key={item.name} href={item.href} onClick={() => setMobileOpen(false)}
@@ -519,6 +587,15 @@ function GlassNav({
                   {item.name}
                 </a>
               ))}
+              <a
+                href="https://wa.me/?text=Hello%20Advika%20Imitation%20Jewellery,%20I%20would%20like%20to%20inquire%20about%20your%20jewellery%20collection."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-xs font-sans text-white bg-[#25D366] px-5 py-2.5 rounded-full tracking-[0.18em] font-semibold mt-4"
+              >
+                <MessageCircle size={15} />
+                <span>CONTACT ON WHATSAPP</span>
+              </a>
             </nav>
           </motion.div>
         )}
@@ -614,6 +691,17 @@ function ModelSection() {
         }}
       >
         <div ref={leftTextRef} className="max-w-md">
+          {/* Brand Logo Header */}
+          <div className="relative w-[170px] sm:w-[200px] h-[50px] sm:h-[58px] mb-6">
+            <Image
+              src="/assets/advika-logo-white.png"
+              alt="Advika Imitation Jewellery"
+              fill
+              quality={100}
+              className="object-contain object-left"
+            />
+          </div>
+
           {/* Tagline — exact same font and tracking as hero */}
           <span
             className="font-sans block text-[11px] tracking-[0.24em] text-[#c5a47e] uppercase mb-3 font-semibold"
@@ -657,7 +745,7 @@ function ModelSection() {
             className="font-sans text-[12.5px] leading-relaxed text-[#a8a39a] mb-8"
             style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
           >
-            Icarus jewellery is made for the woman who carries herself with quiet certainty. Handcrafted in solid 18k gold and rare Colombian emeralds — where every piece becomes part of her story.
+            Advika imitation jewellery is made for the woman who carries herself with quiet certainty. Handcrafted with exquisite artistry and radiant detailing — where every piece becomes part of her story.
           </p>
 
           {/* Quote Accent */}
@@ -706,7 +794,7 @@ function ModelSection() {
           <div className="absolute inset-0 w-full h-full">
             <Image
               src="/assets/girlmodel.png"
-              alt="The muse wearing Icarus fine emerald jewellery"
+              alt="The muse wearing Advika imitation jewellery"
               fill
               quality={100}
               className="object-cover object-center"
@@ -737,17 +825,16 @@ function ModelSection() {
         />
 
         {/* Maison Watermark */}
-        <div className="absolute bottom-6 right-8 z-20 pointer-events-none select-none">
-          <span
-            style={{
-              fontFamily: "var(--font-cinzel), serif",
-              fontSize: 88,
-              color: "rgba(255,255,255,0.05)",
-              lineHeight: 1,
-            }}
-          >
-            I
-          </span>
+        <div className="absolute bottom-6 right-8 z-20 pointer-events-none select-none opacity-25">
+          <div className="relative w-28 h-10 sm:w-36 sm:h-12">
+            <Image
+              src="/assets/advika-logo-white.png"
+              alt="Advika Watermark"
+              fill
+              quality={90}
+              className="object-contain object-right"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -820,10 +907,17 @@ function PremiumFooter({ onCategoryClick }: { onCategoryClick: (cat: string) => 
 
           {/* Brand */}
           <div className="footer-col col-span-2 md:col-span-3 lg:col-span-4 pr-0 lg:pr-8" style={{ opacity: 0 }}>
-            <span className="font-cinzel text-[34px] tracking-[0.12em] text-white font-normal leading-none block mb-0.5" style={{ fontFamily: "var(--font-cinzel), serif" }}>ICARUS</span>
-            <span className="font-sans text-[9.5px] tracking-[0.24em] text-[#c5a47e] uppercase block mb-5" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>FINE JEWELLERY</span>
+            <div className="relative w-[185px] h-[55px] mb-4">
+              <Image
+                src="/assets/advika-logo-white.png"
+                alt="Advika Imitation Jewellery"
+                fill
+                quality={100}
+                className="object-contain object-left"
+              />
+            </div>
             <p className="font-sans text-[12px] text-[#a8a39a] leading-relaxed mb-6 max-w-[280px]" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
-              Timeless jewellery, thoughtfully crafted for every moment that matters.
+              Timeless imitation jewellery, thoughtfully crafted for every moment that matters.
             </p>
             <div className="w-8 h-[1px] bg-[#c5a47e]/30 mb-6" />
             <ul className="space-y-3">
@@ -914,7 +1008,7 @@ function PremiumFooter({ onCategoryClick }: { onCategoryClick: (cat: string) => 
             ))}
           </div>
           <div className="font-sans text-[10px] tracking-[0.18em] text-[#3a3732] text-center" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
-            © 2025 ICARUS FINE JEWELLERY. ALL RIGHTS RESERVED.
+            © 2025 ADVIKA IMITATION JEWELLERY. ALL RIGHTS RESERVED.
           </div>
           <div className="flex items-center space-x-4 font-sans text-[10px] tracking-[0.14em] text-[#3a3732]" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
             {["PRIVACY POLICY", "TERMS & CONDITIONS", "COOKIE POLICY"].map((link, i) => (
@@ -941,14 +1035,20 @@ export default function LuxuryJewelleryPage() {
   const [selectedMetal, setSelectedMetal] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
   const [wishlist, setWishlist] = useState<string[]>([]);
-  const [bagItems, setBagItems] = useState<Product[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [selectedRingSize, setSelectedRingSize] = useState("6");
-  const [addedToast, setAddedToast] = useState<string | null>(null);
   const [compareMode, setCompareMode] = useState(false);
 
   const catalogRef = useRef<HTMLDivElement>(null);
   const currentSlide = heroSlides[activeSlide];
+
+  const getWhatsAppUrl = (productName?: string, price?: string, ringSize?: string) => {
+    let msg = "Hello Advika Imitation Jewellery, I am interested in your jewellery collections.";
+    if (productName) {
+      msg = `Hello Advika Imitation Jewellery, I would like to inquire/order "${productName}"${price ? ` (${price})` : ""}${ringSize ? ` (Ring Size: ${ringSize})` : ""}. Please share more details!`;
+    }
+    return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  };
 
   // Hero text entrance
   const heroContentRef = useRef<HTMLDivElement>(null);
@@ -986,12 +1086,6 @@ export default function LuxuryJewelleryPage() {
     setWishlist((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   };
 
-  const addToBag = (product: Product) => {
-    setBagItems((prev) => [...prev, product]);
-    setAddedToast(product.name);
-    setTimeout(() => setAddedToast(null), 3000);
-  };
-
   const openQuickView = (piece: typeof signaturePieces[0]) => {
     const p = productCatalog.find((x) => x.name.toLowerCase().includes(piece.name.split(" ")[0].toLowerCase()));
     if (p) { setQuickViewProduct(p); return; }
@@ -1004,7 +1098,7 @@ export default function LuxuryJewelleryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#ede8e3] text-[#161616] selection:bg-[#c5a47e] selection:text-black overflow-x-hidden">
+    <div className="min-h-screen bg-[#f5f4eb] text-[#161616] selection:bg-[#c5a47e] selection:text-black overflow-x-hidden">
 
       {/* SPLASH */}
       <AnimatePresence>
@@ -1013,7 +1107,6 @@ export default function LuxuryJewelleryPage() {
 
       {/* GLASS NAV */}
       <GlassNav
-        bagCount={bagItems.length}
         currency={currency}
         setCurrency={setCurrency}
         onCategoryClick={handleCategoryClick}
@@ -1033,10 +1126,10 @@ export default function LuxuryJewelleryPage() {
           />
 
           {/* Top subtle vignette on mobile so navigation is always readable */}
-          <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-10 sm:hidden" />
+          <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none z-10 sm:hidden" />
 
-          {/* Mobile subtle bottom gradient strictly in text area so emerald ring above stays 100% vibrant */}
-          <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#ede8e3] via-[#ede8e3]/80 to-transparent pointer-events-none z-10 sm:hidden" />
+          {/* Mobile backdrop gradient so entire text area is 100% readable & high contrast */}
+          <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-[#f5f4eb] via-[#f5f4eb]/95 via-50% to-transparent pointer-events-none z-10 sm:hidden" />
 
           <AnimatePresence>
             {compareMode && (
@@ -1059,34 +1152,34 @@ export default function LuxuryJewelleryPage() {
                 transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               >
                 <span
-                  className="font-sans block text-[10px] sm:text-[11px] tracking-[0.22em] sm:tracking-[0.24em] text-[#3a3632] mb-2 sm:mb-3 font-semibold uppercase"
+                  className="font-sans block text-[10.5px] sm:text-[11px] tracking-[0.24em] text-[#2c2a27] mb-2 sm:mb-3 font-bold uppercase"
                   style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   {currentSlide.tag}
                 </span>
-                <div className="w-8 sm:w-10 h-[1px] bg-[#3a3632] mb-2 sm:mb-0" />
+                <div className="w-8 sm:w-10 h-[1.5px] bg-[#2c2a27] mb-2 sm:mb-0" />
                 <h1
-                  className="font-serif font-normal leading-[0.9] sm:leading-[0.88] text-[#161616] mt-3 sm:mt-5 mb-3 sm:mb-6 select-none"
+                  className="font-serif font-normal leading-[0.92] sm:leading-[0.88] text-[#111111] mt-3 sm:mt-5 mb-3 sm:mb-6 select-none drop-shadow-sm"
                   style={{
                     fontFamily: "var(--font-cormorant), serif",
-                    fontSize: "clamp(44px, 10vw, 138px)",
+                    fontSize: "clamp(46px, 11vw, 138px)",
                     letterSpacing: "0.02em",
                   }}
                 >
                   {currentSlide.title}
                 </h1>
                 <p
-                  className="font-sans text-[10.5px] sm:text-[11.5px] tracking-[0.2em] sm:tracking-[0.22em] text-[#5e5b56] mb-5 sm:mb-9 max-w-xl uppercase"
+                  className="font-sans text-[11px] sm:text-[11.5px] tracking-[0.2em] sm:tracking-[0.22em] text-[#33312e] font-medium mb-5 sm:mb-9 max-w-xl uppercase"
                   style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   {currentSlide.subtitle}
                 </p>
                 <a
                   href="#bestsellers"
-                  className="group inline-flex items-center space-x-3 pb-0.5 border-b border-[#2c2a27] text-[#2c2a27]"
+                  className="group inline-flex items-center space-x-3 pb-0.5 border-b-2 border-[#111111] text-[#111111] font-semibold"
                 >
                   <span
-                    className="font-sans text-[10.5px] sm:text-[11px] tracking-[0.2em] text-[#2c2a27]"
+                    className="font-sans text-[10.5px] sm:text-[11px] tracking-[0.2em]"
                     style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                   >
                     {currentSlide.cta}
@@ -1108,8 +1201,8 @@ export default function LuxuryJewelleryPage() {
               onClick={() => setActiveSlide(idx)}
               className={`rounded-full transition-all duration-400 ${
                 activeSlide === idx
-                  ? "w-6 h-[2px] bg-[#2c2a27]"
-                  : "w-1.5 h-1.5 bg-[#2c2a27]/40 hover:bg-[#2c2a27]/70"
+                  ? "w-6 h-[2px] bg-[#111111]"
+                  : "w-1.5 h-1.5 bg-[#111111]/40 hover:bg-[#111111]/70"
               }`}
               aria-label={`Slide ${idx + 1}`}
             />
@@ -1131,7 +1224,7 @@ export default function LuxuryJewelleryPage() {
       </section>
 
       {/* ═══ 2. MOST LOVED PIECES ═══ */}
-      <section id="bestsellers" className="w-full bg-[#ede8e3] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section id="bestsellers" className="w-full bg-[#f5f4eb] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
 
           {/* Header row */}
@@ -1188,7 +1281,7 @@ export default function LuxuryJewelleryPage() {
       </section>
 
       {/* ═══ 3. WORN & LOVED ═══ */}
-      <section id="worn-and-loved" className="w-full bg-[#ede8e3] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section id="worn-and-loved" className="w-full bg-[#f5f4eb] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-16">
             <FadeUp className="lg:col-span-5">
@@ -1245,7 +1338,7 @@ export default function LuxuryJewelleryPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-8 lg:pr-8 lg:border-r lg:border-[#d8d1c5]">
                 {[
-                  { name: "ANANYA S.", text: "Absolutely in love with my piece from Icarus. The craftsmanship is exceptional and it feels so personal. I wear it every day." },
+                  { name: "ANANYA S.", text: "Absolutely in love with my piece from Advika. The craftsmanship is exceptional and it feels so personal. I wear it every day." },
                   { name: "RIDDHIMA M.", text: "Timeless designs and such beautiful quality. It's more than jewellery, it's a memory.", indent: true },
                 ].map((r) => (
                   <div key={r.name} className={r.indent ? "sm:border-l sm:border-[#d8d1c5] sm:pl-6" : ""}>
@@ -1288,7 +1381,7 @@ export default function LuxuryJewelleryPage() {
       </section>
 
       {/* ═══ 4. BEAUTY, WITH RESPONSIBILITY ═══ */}
-      <section id="responsibility" className="w-full bg-[#ede8e3] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section id="responsibility" className="w-full bg-[#f5f4eb] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-16">
             <FadeUp className="lg:col-span-5">
@@ -1301,7 +1394,7 @@ export default function LuxuryJewelleryPage() {
                 LUXURY TODAY MEANS CARING FOR TOMORROW.
               </p>
               <p className="font-sans text-[12.5px] leading-relaxed text-[#5c5953] mb-8 max-w-md" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
-                At Icarus, we are committed to ethical sourcing, thoughtful craftsmanship, and a lighter footprint for a more beautiful future.
+                At Advika, we are committed to ethical sourcing, thoughtful craftsmanship, and a lighter footprint for a more beautiful future.
               </p>
               <a href="#" className="group inline-flex items-center space-x-2 text-[10.5px] font-semibold tracking-[0.2em] text-[#161616] pb-0.5 border-b border-[#161616]" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
                 <span>EXPLORE OUR COMMITMENT</span><span className="font-serif text-sm transform transition-transform group-hover:translate-x-1">→</span>
@@ -1372,7 +1465,7 @@ export default function LuxuryJewelleryPage() {
       <ModelSection />
 
       {/* ═══ 6. THE JOURNAL ═══ */}
-      <section id="journal" className="w-full bg-[#ede8e3] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section id="journal" className="w-full bg-[#f5f4eb] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-16">
             <FadeUp className="lg:col-span-3">
@@ -1413,7 +1506,7 @@ export default function LuxuryJewelleryPage() {
           <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left image */}
             <FadeUp className="lg:col-span-4 relative overflow-hidden" style={{ aspectRatio: "4/3" } as React.CSSProperties}>
-              <ShutterImage src="/assets/pillar-packaging.jpg" alt="Icarus jewellery box" className="absolute inset-0 w-full h-full" darkBg />
+              <ShutterImage src="/assets/pillar-packaging.jpg" alt="Advika jewellery box" className="absolute inset-0 w-full h-full" darkBg />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10" />
             </FadeUp>
 
@@ -1457,7 +1550,7 @@ export default function LuxuryJewelleryPage() {
       </section>
 
       {/* ═══ 7. SIGNATURE COLLECTION ═══ */}
-      <section id="signature-collection" className="w-full bg-[#ede8e3] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section id="signature-collection" className="w-full bg-[#f5f4eb] py-20 sm:py-28 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-start">
             <FadeUp className="lg:col-span-4 flex flex-col justify-between" style={{ minHeight: 540 }}>
@@ -1626,7 +1719,7 @@ export default function LuxuryJewelleryPage() {
       </section>
 
       {/* ═══ 8. THE MAISON EDITIONS ═══ */}
-      <section id="curated-editions" className="w-full bg-[#ede8e3] pt-16 sm:pt-20 pb-14 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section id="curated-editions" className="w-full bg-[#f5f4eb] pt-16 sm:pt-20 pb-14 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
           <FadeUp className="flex flex-col lg:flex-row lg:items-end justify-between mb-12">
             <div>
@@ -1668,7 +1761,7 @@ export default function LuxuryJewelleryPage() {
       </section>
 
       {/* ═══ 9. PRODUCTS CATALOGUE ═══ */}
-      <section ref={catalogRef} id="products-catalog" className="w-full bg-[#f4f0eb] py-16 sm:py-20 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
+      <section ref={catalogRef} id="products-catalog" className="w-full bg-[#f5f4eb] py-16 sm:py-20 px-6 sm:px-14 lg:px-16 border-t border-[#dfd9d0]">
         <div className="max-w-[1600px] mx-auto">
           <FadeUp className="flex flex-col lg:flex-row lg:items-center justify-between pb-8 border-b border-[#dfd9d0] gap-6">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -1725,7 +1818,17 @@ export default function LuxuryJewelleryPage() {
                     </div>
                     <div className="pt-3 border-t border-[#ded7cc] flex items-center justify-between">
                       <span className="font-serif text-lg font-medium text-[#161616]" style={{ fontFamily: "var(--font-cormorant), serif" }}>{currency === "INR" && product.priceInr ? product.priceInr : `$${product.price.toLocaleString()}`}</span>
-                      <button onClick={() => addToBag(product)} className="font-sans text-[10px] font-semibold tracking-[0.18em] text-[#161616] hover:text-[#7d6951] uppercase transition-colors" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>Add to Bag +</button>
+                      <a
+                        href={getWhatsAppUrl(product.name, currency === "INR" && product.priceInr ? product.priceInr : `$${product.price.toLocaleString()}`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-sans text-[10px] font-semibold tracking-[0.16em] text-[#161616] hover:text-[#25D366] uppercase transition-colors flex items-center space-x-1.5"
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                      >
+                        <MessageCircle size={12} className="text-[#25D366]" />
+                        <span>Contact on WhatsApp</span>
+                        <span className="font-serif text-sm">→</span>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1742,7 +1845,7 @@ export default function LuxuryJewelleryPage() {
       <AnimatePresence>
         {quickViewProduct && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6" onClick={() => setQuickViewProduct(null)}>
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-[#ece7e0] max-w-4xl w-full max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 shadow-2xl relative">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-[#f5f4eb] max-w-4xl w-full max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 shadow-2xl relative">
               <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center text-[#161616] transition-colors"><X size={18} /></button>
               <div className="relative bg-[#dfd7cc]" style={{ minHeight: 340 }}>
                 <Image src={quickViewProduct.image} alt={quickViewProduct.name} fill sizes="(max-width: 768px) 100vw, 50vw" quality={95} className="object-cover object-center" />
@@ -1769,11 +1872,21 @@ export default function LuxuryJewelleryPage() {
                     </div>
                   )}
                 </div>
-                <div className="space-y-3 pt-4">
-                  <button onClick={() => { addToBag(quickViewProduct); setQuickViewProduct(null); }} className="w-full bg-[#161616] hover:bg-[#2b2b2b] text-white text-[10.5px] tracking-[0.2em] font-medium py-3.5 uppercase transition-colors flex items-center justify-center space-x-2">
-                    <ShoppingBag size={13} /><span>ADD TO SHOPPING BAG</span>
-                  </button>
-                  <button onClick={() => setQuickViewProduct(null)} className="w-full bg-transparent hover:bg-black/5 text-[#161616] text-[10.5px] tracking-[0.18em] py-2.5 uppercase border border-[#161616]/30 transition-colors">Book Private Viewing</button>
+                <div className="pt-4">
+                  <a
+                    href={getWhatsAppUrl(
+                      quickViewProduct.name,
+                      currency === "INR" && quickViewProduct.priceInr ? quickViewProduct.priceInr : `$${quickViewProduct.price.toLocaleString()}`,
+                      quickViewProduct.category === "rings" ? selectedRingSize : undefined
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] tracking-[0.2em] font-semibold py-3.5 uppercase transition-all duration-300 flex items-center justify-center space-x-2.5 shadow-md hover:shadow-lg"
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                  >
+                    <MessageCircle size={16} />
+                    <span>CONTACT ON WHATSAPP</span>
+                  </a>
                 </div>
               </div>
             </motion.div>
@@ -1781,18 +1894,17 @@ export default function LuxuryJewelleryPage() {
         )}
       </AnimatePresence>
 
-      {/* TOAST */}
-      <AnimatePresence>
-        {addedToast && (
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }} className="fixed bottom-6 right-6 z-50 bg-[#161616] text-white px-5 py-3.5 shadow-2xl flex items-center space-x-3 border border-[#c5a47e]/40">
-            <div className="w-5 h-5 rounded-full bg-[#c5a47e] text-black flex items-center justify-center"><Check size={11} strokeWidth={3} /></div>
-            <div className="text-xs font-sans">
-              <span className="font-semibold text-white block">{addedToast}</span>
-              <span className="text-[#a8a49d]">Added to your shopping bag</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* FLOATING WHATSAPP BUTTON — Compact icon only */}
+      <a
+        href="https://wa.me/?text=Hello%20Advika%20Imitation%20Jewellery,%20I%20am%20interested%20in%20your%20jewellery%20collection."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-full flex items-center justify-center shadow-[0_4px_24px_rgba(37,211,102,0.45)] transition-all duration-300 hover:scale-110 border border-white/20"
+        aria-label="Contact on WhatsApp"
+        title="Contact on WhatsApp"
+      >
+        <MessageCircle size={24} className="fill-white/15" />
+      </a>
     </div>
   );
 }
